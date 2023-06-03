@@ -1,4 +1,4 @@
-module sample-opentelemetry-go-tracing
+module main
 
 go 1.19
 
