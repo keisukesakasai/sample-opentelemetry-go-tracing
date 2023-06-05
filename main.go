@@ -14,49 +14,49 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func initProvider() (func(context.Context) error, error) {
 	ctx := context.Background()
+
+	// resource の生成
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceNameKey.String("TodoAPI"),
+			semconv.ServiceNameKey.String("OCHaCafe"),
 		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
 
+	// traceExporter の生成
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, "http://localhost:14268/api/traces",
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
-	}
-	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
+	traceExporter, err := otlptracegrpc.New(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create trace exporter: %w", err)
 	}
 
+	// spanProcessor の生成
 	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
+
+	// traceProvider の生成
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithResource(res),
 		sdktrace.WithSpanProcessor(bsp),
 	)
+
+	// tracer の設定
 	otel.SetTracerProvider(tracerProvider)
+
+	// propagater の生成
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	return tracerProvider.Shutdown, nil
 }
 
-var tracer trace.Tracer
+var tracer = otel.Tracer("OCHaCafe")
 
 func main() {
 	ctx := context.Background()
@@ -73,7 +73,7 @@ func main() {
 	r.GET("/ochacafe", ochacafe1)
 
 	fmt.Println("server start...")
-	r.Run(":3000")
+	r.Run(":8080")
 }
 
 func ochacafe1(c *gin.Context) {
@@ -81,17 +81,19 @@ func ochacafe1(c *gin.Context) {
 	_, span := tracer.Start(ctx, "ochacafe1")
 	defer span.End()
 	time.Sleep(100 * time.Millisecond)
-	ochacafe2(ctx)
+	ochacafe2(c)
 }
 
-func ochacafe2(ctx context.Context) {
+func ochacafe2(c *gin.Context) {
+	ctx := c.Request.Context()
 	_, span := tracer.Start(ctx, "ochacafe2")
 	defer span.End()
 	time.Sleep(100 * time.Millisecond)
-	ochacafe3(ctx)
+	ochacafe3(c)
 }
 
-func ochacafe3(ctx context.Context) {
+func ochacafe3(c *gin.Context) {
+	ctx := c.Request.Context()
 	_, span := tracer.Start(ctx, "ochacafe3")
 	defer span.End()
 	time.Sleep(100 * time.Millisecond)

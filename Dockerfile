@@ -1,7 +1,7 @@
-FROM golang:1.9 as builder
+FROM golang:1.19.1 as builder
 WORKDIR /workspace
 COPY . /workspace
-RUN CGO_ENABLED=0 GOOS=linux go build -o todoapi main.go && chmod +x ./todoapi
+RUN CGO_ENABLED=0 GOOS=linux go build -o ochacafe main.go && chmod +x ./ochacafe
 
 FROM alpine:3.18
 WORKDIR /app

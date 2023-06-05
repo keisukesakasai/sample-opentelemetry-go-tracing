@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ochacafe
+  labels:
+    app: ochacafe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ochacafe
+  template:
+    metadata:
+      labels:
+        app: ochacafe
+    spec:
+      containers:
+        - name: ochacafe
+          image: ghcr.io/keisukesakasai/sample-opentelemetry-go-tracing:latest
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
