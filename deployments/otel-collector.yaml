@@ -48,6 +48,10 @@ spec:
           enabled: true   
       # ---
 
+      # OpenTelemetry Collectorのデバッグ用
+      # logging:
+        # loglevel: debug
+
     service:
       pipelines:
         traces:
@@ -62,3 +66,5 @@ spec:
         # ---
 
         logs:
+          receivers: [otlp]
+          # exporters: [logging]
