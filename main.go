@@ -22,7 +22,10 @@ func initProvider() (func(context.Context) error, error) {
 	// resource の生成
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceNameKey.String("OCHaCafe"),
+			semconv.ServiceNameKey.String("OCHaCafe Service"),
+			semconv.ServiceInstanceIDKey.String("Local"),
+			semconv.ServiceVersionKey.String("1.0.0-test"),
+			semconv.TelemetrySDKNameKey.String("OpenTelemetry~~~!!!!"),
 		),
 	)
 	if err != nil {
@@ -56,7 +59,7 @@ func initProvider() (func(context.Context) error, error) {
 	return tracerProvider.Shutdown, nil
 }
 
-var tracer = otel.Tracer("OCHaCafe")
+var tracer = otel.Tracer("OCHaCafe Trace Sample APP PKG")
 
 func main() {
 	ctx := context.Background()
@@ -78,7 +81,7 @@ func main() {
 
 func ochacafe1(c *gin.Context) {
 	ctx := c.Request.Context()
-	_, span := tracer.Start(ctx, "ochacafe1")
+	_, span := tracer.Start(ctx, "ochacafe span 1")
 	defer span.End()
 	time.Sleep(100 * time.Millisecond)
 	ochacafe2(c)
@@ -86,7 +89,7 @@ func ochacafe1(c *gin.Context) {
 
 func ochacafe2(c *gin.Context) {
 	ctx := c.Request.Context()
-	_, span := tracer.Start(ctx, "ochacafe2")
+	_, span := tracer.Start(ctx, "ochacafe span 2")
 	defer span.End()
 	time.Sleep(100 * time.Millisecond)
 	ochacafe3(c)
@@ -94,7 +97,7 @@ func ochacafe2(c *gin.Context) {
 
 func ochacafe3(c *gin.Context) {
 	ctx := c.Request.Context()
-	_, span := tracer.Start(ctx, "ochacafe3")
+	_, span := tracer.Start(ctx, "ochacafe span 3")
 	defer span.End()
 	time.Sleep(100 * time.Millisecond)
 }
